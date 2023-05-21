@@ -1,5 +1,8 @@
 package even
 
+import "fmt"
+
 func IsEven(i int) bool {
-	return i % 2 == 0
+	fmt.Println("IsEven called") // to test auto dependency management of Golang
+	return i%2 == 0
 }
