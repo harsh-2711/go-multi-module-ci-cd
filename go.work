@@ -1,0 +1,10 @@
+go 1.20
+
+use (
+	./packages/even
+	./packages/odd
+	./services/resource
+	./services/user
+)
+
+replace github.com/harsh-2711/go-multi-module-ci-cd/packages/even v0.0.0 => ./packages/even
