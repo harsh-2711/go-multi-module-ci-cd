@@ -5,7 +5,7 @@ MODULES := $(shell find . -name go.mod -exec dirname {} \;)
 update-deps:
 	@for module in $(MODULES); do \
 		echo "Fetching dependencies for $$module"; \
-		cd $$module && go get -u && go mod tidy; \
+		cd $$module && go get -u && go get -u all && go mod tidy; \
 		cd - > /dev/null; \
 	done
 
