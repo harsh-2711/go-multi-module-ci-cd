@@ -1,4 +1,4 @@
-github.com/harsh-2711/go-multi-module-ci-cd/packages/even v0.0.0-20230522095142-b3964ace27ab h1:4fwiBNaFqUvQ/R99RxYfOimzxfdoN4q/Xpn01KpAC98=
-github.com/harsh-2711/go-multi-module-ci-cd/packages/even v0.0.0-20230522095142-b3964ace27ab/go.mod h1:hY6vUWOXfGazyI3kPS7BmhWNXdwQw8jhhn1svgC9XgM=
-github.com/harsh-2711/go-multi-module-ci-cd/packages/odd v0.0.0-20230522095142-b3964ace27ab h1:013MxEpYlUZmHyFIYbo1ix1+wEZ1VUcg0B+qQ0EkgIg=
-github.com/harsh-2711/go-multi-module-ci-cd/packages/odd v0.0.0-20230522095142-b3964ace27ab/go.mod h1:ft+eo4/tkeL+KM5L4AquUaQkL6obSLIE4Hm/4I9HLrQ=
+github.com/harsh-2711/go-multi-module-ci-cd/packages/even v0.2.1 h1:5M7/qdMbdn1S2VfDPx0H+HDj6fHFEi/33V/JI3LbP+c=
+github.com/harsh-2711/go-multi-module-ci-cd/packages/even v0.2.1/go.mod h1:hY6vUWOXfGazyI3kPS7BmhWNXdwQw8jhhn1svgC9XgM=
+github.com/harsh-2711/go-multi-module-ci-cd/packages/odd v0.2.1 h1:uxz/0HpNoqXDwLH80ohJZzL02e3amTle3zNGO9rD5ZM=
+github.com/harsh-2711/go-multi-module-ci-cd/packages/odd v0.2.1/go.mod h1:vKPtu7ZEEplMSejt4VrtCE+BBneZUoRZFPONHvjho30=

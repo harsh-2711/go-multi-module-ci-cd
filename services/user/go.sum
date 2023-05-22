@@ -1,4 +1,4 @@
-github.com/harsh-2711/go-multi-module-ci-cd/packages/even v0.0.0-20230522095142-b3964ace27ab h1:4fwiBNaFqUvQ/R99RxYfOimzxfdoN4q/Xpn01KpAC98=
-github.com/harsh-2711/go-multi-module-ci-cd/packages/even v0.0.0-20230522095142-b3964ace27ab/go.mod h1:hY6vUWOXfGazyI3kPS7BmhWNXdwQw8jhhn1svgC9XgM=
-github.com/harsh-2711/go-multi-module-ci-cd/services/resource v0.0.0-20230522095142-b3964ace27ab h1:wh/tObW4Y4wA++VYL4t8l40OcKx96F/CGEWKucY7pJM=
-github.com/harsh-2711/go-multi-module-ci-cd/services/resource v0.0.0-20230522095142-b3964ace27ab/go.mod h1:sHcD1vJBfsAfXZtz25GKb7/KyaVxgYGE7A9/29jrZNg=
+github.com/harsh-2711/go-multi-module-ci-cd/packages/even v0.2.1 h1:5M7/qdMbdn1S2VfDPx0H+HDj6fHFEi/33V/JI3LbP+c=
+github.com/harsh-2711/go-multi-module-ci-cd/packages/even v0.2.1/go.mod h1:hY6vUWOXfGazyI3kPS7BmhWNXdwQw8jhhn1svgC9XgM=
+github.com/harsh-2711/go-multi-module-ci-cd/services/resource v0.0.0-20230522101217-fd3f63ddd85c h1:xhMFmGMlgdDzzvLOoTI2pALClfSMnxXKixfBS9SJADo=
+github.com/harsh-2711/go-multi-module-ci-cd/services/resource v0.0.0-20230522101217-fd3f63ddd85c/go.mod h1:mPpfsSJMqNZHMgIeT/BmC9XrqywHPQgYpQVrXB85maE=
