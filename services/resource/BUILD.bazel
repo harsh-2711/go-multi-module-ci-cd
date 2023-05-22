@@ -1,0 +1,15 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_binary", "go_test")
+
+go_binary(
+     name = "resource",
+     embed = [":go_default_library"],
+     visibility = ["//visibility:public"],
+)
+
+go_library(
+    name = "go_default_library",
+    srcs = ["main.go"],
+    importpath = "github.com/harsh-2711/go-multi-module-ci-cd/services/resource",
+    visibility = ["//visibility:private"],
+    deps = ["@go-multi-module-ci-cd//packages/even:go_default_library"],
+)
