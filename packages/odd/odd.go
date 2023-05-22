@@ -7,6 +7,6 @@ import (
 )
 
 func IsOdd(i int) bool {
-	fmt.Println("function called: IsOdd") // to test auto dependency management of Golang
+	fmt.Println("func called: IsOdd") // to test auto dependency management of Golang
 	return !even.IsEven(i)
 }
