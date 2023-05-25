@@ -1,0 +1,9 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "odd",
+    srcs = ["odd.go"],
+    importpath = "github.com/harsh-2711/go-multi-module-ci-cd/packages/odd",
+    visibility = ["//visibility:public"],
+    deps = ["//packages/even"],
+)
