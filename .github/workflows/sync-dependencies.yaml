@@ -1,0 +1,47 @@
+name: Sync Package Dependencies
+
+on:
+  workflow_run:
+    workflows: ["Auto Tag Packages"]
+    types:
+      - completed
+
+jobs:
+  sync-and-commit:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+    - uses: actions/checkout@v3
+      with:
+        fetch-depth: 0
+
+    - name: Get latest tag
+      id: latest_tag
+      shell: bash
+      run: |
+        echo "LATEST_TAG=$(git describe --abbrev=0 --tags --match="$PREFIX_MATCH/*" 2>&1 | awk -F'/' '{print $NF}')" >> $GITHUB_ENV
+
+    - name: Update package dependencies
+      id: update_package_dependencies
+      shell: bash
+      run: |
+        cd packages/
+        for folder in */; do
+          package=${folder%/}
+          make replace-deps package=${{ matrix.package }} version=$LATEST_TAG
+        done
+
+    - name: Commit modified dependencies
+      run: |
+        git config --local user.email "action@github.com"
+        git config --local user.name "GitHub Action"
+        git add -A
+        git commit -m "Upgrade packages" -a || exit 0
+
+    - name: Push changes
+      run: |
+        git push
+      env:
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
