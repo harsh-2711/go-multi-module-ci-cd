@@ -15,6 +15,7 @@ build-all:
 		go build -v -o /dev/null $$module || exit 1 ; \
 	done
 
+.PHONY: replace-deps
 replace-deps:
 	@if [ -z "$(package)" ]; then \
 		echo "Package path required. Use: make replace-all package=<package-path> version=<version>" ; \
