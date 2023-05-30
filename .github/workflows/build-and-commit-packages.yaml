@@ -66,20 +66,14 @@ jobs:
       with:
         fetch-depth: 0
 
-    - name: Get latest tag
-      id: latest_tag
-      shell: bash
-      run: |
-        echo "LATEST_TAG=$(git describe --abbrev=0 --tags --match="$PREFIX_MATCH/*" 2>&1 | awk -F'/' '{print $NF}')" >> $GITHUB_ENV
-
     - name: Update package dependencies
       id: update_package_dependencies
       shell: bash
       run: |
-        cd packages/
-        for folder in */; do
-          package=${folder%/}
-          make replace-deps package=${{ matrix.package }} version=$LATEST_TAG
+        for folder in packages/*; do
+          PACKAGE=${folder%/}
+          LATEST_TAG=$(git describe --abbrev=0 --tags --match="$PACKAGE/*" 2>&1 | awk -F'/' '{print $NF}')
+          make replace-deps package=$PACKAGE version=$LATEST_TAG
         done
 
     - name: Commit modified dependencies
