@@ -12,7 +12,9 @@ update-deps:
 build-all:
 	@for module in $(MODULES); do \
 		echo "Building $$module"; \
-		go build -v -o /dev/null $$module || exit 1 ; \
+		cd $$module; \
+		go build -v -o /dev/null || exit 1 ; \
+		cd - > /dev/null; \
 	done
 
 .PHONY: replace-deps
