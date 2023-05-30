@@ -30,7 +30,7 @@ replace-deps:
 	@cd $(package); \
 	DEPS=$$(go list -f '{{ join .Deps "\n" }}' . | grep 'github.com/harsh-2711/go-multi-module-ci-cd'); \
 	for dep in $${DEPS}; do \
-		sed -i '' 's|'$$dep' v[0-9.]*|'$$dep' '$(version)'|g' go.mod; \
+		sed -i 's|'$$dep' v[0-9.]*|'$$dep' '$(version)'|g' go.mod; \
 	done; \
 	go mod tidy; \
 	go mod download; \
