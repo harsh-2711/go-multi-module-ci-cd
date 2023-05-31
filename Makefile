@@ -8,6 +8,14 @@ update-deps:
 		cd - > /dev/null; \
 	done
 
+.PHONY: setup-workspace
+setup-workspace:
+	go work init; \
+	for module in $(MODULES); do \
+		echo "Setting up workspace for $$module"; \
+		go work use $$module; \
+	done
+
 .PHONY: build-all
 build-all:
 	@for module in $(MODULES); do \
