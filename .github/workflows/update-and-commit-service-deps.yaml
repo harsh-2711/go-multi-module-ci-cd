@@ -9,7 +9,6 @@ on:
 jobs:
   detect-changes:
     runs-on: ubuntu-latest
-    if: github.event.sender.login != 'GitHub Action'
     outputs:
       changed-services: ${{ steps.changes.outputs.changed-services }}
 

@@ -3,9 +3,7 @@ name: Auto Build Packages
 on:
   push:
     branches:
-      - main
-    paths:
-      - 'packages/**'
+      - launchpad
 
 jobs:
   build:
