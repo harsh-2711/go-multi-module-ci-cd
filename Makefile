@@ -1,12 +1,6 @@
 MODULES := $(shell find . -name go.mod -exec dirname {} \;)
-
-.PHONY: update-deps
-update-deps:
-	@for module in $(MODULES); do \
-		echo "Fetching dependencies for $$module"; \
-		cd $$module && go get -u && go get -u all && go mod tidy; \
-		cd - > /dev/null; \
-	done
+PACKAGES := $(shell find ./packages -name go.mod -exec dirname {} \;)
+SERVICES := $(shell find ./services -name go.mod -exec dirname {} \;)
 
 .PHONY: setup-workspace
 setup-workspace:
@@ -16,27 +10,59 @@ setup-workspace:
 		go work use $$module; \
 	done
 
-.PHONY: build-all
-build-all:
-	@for module in $(MODULES); do \
+define update_target
+	for module in $(1); do \
+		echo "Fetching dependencies for $$module"; \
+		cd $$module && go get -u && go get -u all && go mod tidy; \
+		cd - > /dev/null; \
+	done
+endef
+
+.PHONY: update-all-deps
+update-all-deps:
+	@$(call update_target,$(MODULES))
+
+.PHONY: update-package-deps
+update-package-deps:
+	@$(call update_target,$(PACKAGES))
+
+.PHONY: update-service-deps
+update-service-deps:
+	@$(call update_target,$(SERVICES))
+
+define build_target
+	for module in $(1); do \
 		echo "Building $$module"; \
 		cd $$module; \
 		go build -v -o /dev/null || exit 1 ; \
 		cd - > /dev/null; \
 	done
+endef
+
+.PHONY: build-all
+build-all:
+	@$(call build_target,$(MODULES))
+
+.PHONY: build-all-packages
+build-all-packages:
+	@$(call build_target,$(PACKAGES))
+
+.PHONY: build-all-services
+build-all-services:
+	@$(call build_target,$(SERVICES))
 
 .PHONY: replace-deps
 replace-deps:
-	@if [ -z "$(package)" ]; then \
-		echo "Package path required. Use: make replace-all package=<package-path> version=<version>" ; \
+	@if [ -z "$(module)" ]; then \
+		echo "Module path required. Use: make replace-all module=<module-path> version=<version>" ; \
 		exit 1; \
 	fi
 	@if [ -z "$(version)" ]; then \
-		echo "Version required. Use: make replace-all package=<package-path> version=<version>" ; \
+		echo "Version required. Use: make replace-all module=<module-path> version=<version>" ; \
 		exit 1; \
 	fi
-	@cd $(package); \
-	DEPS=$$(go list -f '{{ join .Deps "\n" }}' . | grep 'github.com/harsh-2711/go-multi-module-ci-cd'); \
+	@cd $(module); \
+	DEPS=$$(go list -f '{{ join .Deps "\n" }}' . | grep 'github.com/harsh-2711/go-multi-module-ci-cd/packages'); \
 	for dep in $${DEPS}; do \
 		sed -i 's|'$$dep' v[0-9.]*|'$$dep' '$(version)'|g' go.mod; \
 	done; \

@@ -1,0 +1,86 @@
+name: Auto Build Packages
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'services/**'
+
+jobs:
+  detect-changes:
+    runs-on: ubuntu-latest
+    if: github.event.sender.login != 'GitHub Action'
+    outputs:
+      changed-services: ${{ steps.changes.outputs.changed-services }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Detect changes
+        id: changes
+        run: |
+          echo "::group::Detecting changed services"
+          SERVICES=$(find ./services -name go.mod -exec dirname {} \;)
+          CHANGED_SERVICES=""
+          for service in $SERVICES; do
+            cd $service
+            if ! git diff --quiet HEAD^ HEAD; then
+              CHANGED_SERVICES="$CHANGED_SERVICES ${service#./services/}"
+            fi
+            cd - > /dev/null
+          done
+          echo "Changed services: $CHANGED_SERVICES"
+          echo "::endgroup::"
+          echo "::set-output name=changed-services::$CHANGED_SERVICES"
+
+  build-and-upgrade:
+    needs: detect-changes
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - uses: actions/setup-go@v4
+      with:
+        go-version: '^1.20.0'
+
+    - name: Setup Workspace
+      shell: bash
+      run: |
+        echo "$(go version)"
+        make setup-workspace
+
+    - name: Check builds
+      shell: bash
+      run: |
+        CHANGED_SERVICES="${{ needs.detect-changes.outputs.changed-services }}"
+        for service in $CHANGED_SERVICES; do
+          cd services/$service
+          go build -v -o /dev/null || exit 1
+          cd - > /dev/null
+        done
+
+    - name: Update package dependencies
+      shell: bash
+      run: |
+        CHANGED_SERVICES="${{ needs.detect-changes.outputs.changed-services }}"
+        for service in $CHANGED_SERVICES; do
+          cd services/$service
+          go get -u && go get -u all && go mod tidy
+          cd - > /dev/null; \
+        done
+
+    - name: Commit modified dependencies
+      run: |
+        git config --local user.email "action@github.com"
+        git config --local user.name "GitHub Action"
+        git add -A
+        git commit -m "chore: upgrade packages" -a || exit 0
+
+    - name: Push changes
+      run: |
+        git push
+      env:
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -4,8 +4,8 @@ on:
   push:
     branches:
       - main
-    # paths:
-    #   - 'packages/**'
+    paths:
+      - 'packages/**'
 
 jobs:
   build:
@@ -19,12 +19,16 @@ jobs:
       with:
         go-version: '^1.20.0'
 
-    - name: Check builds
+    - name: Setup Workspace
       shell: bash
       run: |
         echo "$(go version)"
         make setup-workspace
-        make build-all
+
+    - name: Check builds
+      shell: bash
+      run: |
+        make build-all-packages
 
   tag:
     needs: build
@@ -74,7 +78,7 @@ jobs:
         for folder in packages/*; do
           PACKAGE=${folder%/}
           LATEST_TAG=$(git describe --abbrev=0 --tags --match="$PACKAGE/*" 2>&1 | awk -F'/' '{print $NF}')
-          make replace-deps package=$PACKAGE version=$LATEST_TAG
+          make replace-deps module=$PACKAGE version=$LATEST_TAG
         done
 
     - name: Commit modified dependencies
@@ -82,7 +86,7 @@ jobs:
         git config --local user.email "action@github.com"
         git config --local user.name "GitHub Action"
         git add -A
-        git commit -m "chore: upgrade packages" -a || exit 0
+        git commit -m "chore: release new packages version" -a || exit 0
 
     - name: Push changes
       run: |
