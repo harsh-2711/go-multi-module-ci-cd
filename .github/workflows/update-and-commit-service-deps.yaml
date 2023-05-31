@@ -1,11 +1,10 @@
 name: Auto Build Packages
 
 on:
-  push:
-    branches:
-      - main
-    paths:
-      - 'services/**'
+  workflow_run:
+    workflows: [Auto Build Packages"]
+    types:
+      - completed
 
 jobs:
   detect-changes:
@@ -20,6 +19,7 @@ jobs:
 
       - name: Detect changes
         id: changes
+        shell: bash
         run: |
           echo "::group::Detecting changed services"
           SERVICES=$(find ./services -name go.mod -exec dirname {} \;)
@@ -34,6 +34,14 @@ jobs:
           echo "Changed services: $CHANGED_SERVICES"
           echo "::endgroup::"
           echo "::set-output name=changed-services::$CHANGED_SERVICES"
+
+      - name: Exit if no changes
+        shell: bash
+        run: |
+          if [[ -z "$CHANGED_SERVICES" ]]; then
+            echo "No changes detected in services, exiting"
+            exit 0
+          fi
 
   build-and-upgrade:
     needs: detect-changes
