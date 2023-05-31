@@ -2,7 +2,7 @@ name: Auto Build Services
 
 on:
   workflow_run:
-    workflows: [Auto Build Packages"]
+    workflows: ["Auto Build Packages"]
     types:
       - completed
 
