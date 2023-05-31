@@ -2,20 +2,21 @@ name: Auto Build Services
 
 on:
   workflow_run:
-    workflows: [Auto Build Packages"]
+    workflows: ["Auto Build Packages"]
     types:
       - completed
 
 jobs:
   detect-changes:
     runs-on: ubuntu-latest
-    if: github.event.sender.login != 'GitHub Action'
     outputs:
       changed-services: ${{ steps.changes.outputs.changed-services }}
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
 
       - name: Detect changes
         id: changes
