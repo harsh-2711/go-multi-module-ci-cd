@@ -8,7 +8,7 @@ import (
 )
 
 func main() {
-	fmt.Println("input resourceId:")
+	fmt.Println("input resourceId: ")
 	var resourceId int
 	_, err := fmt.Scanln(&resourceId)
 	if err != nil {
