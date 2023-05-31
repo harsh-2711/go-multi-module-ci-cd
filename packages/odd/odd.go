@@ -8,5 +8,5 @@ import (
 
 func IsOdd(i int) bool {
 	fmt.Println("IsOdd function called") // to test auto dependency management of Golang
-	return !even.IsEven(i)
+	return !even.IsEven(i, true)
 }
