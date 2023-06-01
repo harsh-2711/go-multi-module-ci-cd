@@ -10,12 +10,12 @@ jobs:
     if: github.event.sender.login != 'GitHub Action'
     runs-on: ubuntu-latest
     outputs:
-      previous-commit-hash: ${{ steps.export_commit_hashes.outputs.PREVIOUS_COMMIT_HASH }}
-      current-commit-hash: ${{ steps.export_commit_hashes.outputs.CURRENT_COMMIT_HASH }}
+      previous: ${{ steps.export.outputs.previous }}
+      current: ${{ steps.export.outputs.current }}
 
     steps:
     - name: Export commit hashes
-      id: export_commit_hashes
+      id: export
       shell: bash
       run: |-
         PREVIOUS_COMMIT_HASH=${{ github.event.before }}
@@ -24,8 +24,8 @@ jobs:
         echo "Current commit: $CURRENT_COMMIT_HASH"
         echo "Commit to compare with: $PREVIOUS_COMMIT_HASH"
 
-        echo "::set-output name=previous-commit-hash::$PREVIOUS_COMMIT_HASH"
-        echo "::set-output name=current-commit-hash::$CURRENT_COMMIT_HASH"
+        echo "::set-output name=previous::$PREVIOUS_COMMIT_HASH"
+        echo "::set-output name=current::$CURRENT_COMMIT_HASH"
 
   build-packages:
     needs: setup-commit-hashes
@@ -43,8 +43,8 @@ jobs:
       id: changes
       shell: bash
       run: |-
-        PREVIOUS_COMMIT_HASH=${{ needs.setup-commit-hashes.outputs.previous-commit-hash }}
-        CURRENT_COMMIT_HASH=${{ needs.setup-commit-hashes.outputs.current-commit-hash }}
+        PREVIOUS_COMMIT_HASH=${{ needs.setup-commit-hashes.outputs.previous }}
+        CURRENT_COMMIT_HASH=${{ needs.setup-commit-hashes.outputs.current }}
 
         echo "::group::Detecting changed packages"
         CHANGED_PACKAGES=$(git diff --name-only $PREVIOUS_COMMIT_HASH..$CURRENT_COMMIT_HASH | grep '^packages/' | cut -d/ -f2 | sort -u || echo -n '')

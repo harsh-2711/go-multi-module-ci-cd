@@ -16,7 +16,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	if even.IsEven(userId, false) {
+	if even.IsEven(userId) {
 		fmt.Println("even")
 	} else {
 		fmt.Println("odd")
