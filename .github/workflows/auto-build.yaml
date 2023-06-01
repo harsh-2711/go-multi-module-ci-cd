@@ -79,7 +79,7 @@ jobs:
         make build-all-packages
 
   create-packages-matrix:
-    needs: detect-package-changes
+    needs: [build-packages, detect-package-changes]
     if: ${{ needs.detect-package-changes.outputs.changed-packages != '' }}
     runs-on: ubuntu-latest
     outputs:
@@ -234,6 +234,7 @@ jobs:
       run: |-
         git config --local user.email "action@github.com"
         git config --local user.name "GitHub Action"
+        git pull
         git add -A
         git commit -m "chore: upgrade packages" -a || exit 0
 
