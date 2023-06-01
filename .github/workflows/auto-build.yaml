@@ -183,7 +183,7 @@ jobs:
           CURRENT_COMMIT_HASH=${{ needs.setup-commit-hashes.outputs.current }}
 
           echo "::group::Detecting changed services"
-          CHANGED_SERVICES=$(git diff --name-only $PREVIOUS_COMMIT_HASH..$CURRENT_COMMIT_HASH | grep '^services/' | cut -d/ -f2 | sort -u || echo -n '')
+          CHANGED_SERVICES=$(git diff --name-only $PREVIOUS_COMMIT_HASH..$CURRENT_COMMIT_HASH | grep '^services/' | cut -d/ -f2 | sort -u | tr '\n' ' ' || echo -n '')
           echo "Changed services: $CHANGED_SERVICES"
           echo "::endgroup::"
 
