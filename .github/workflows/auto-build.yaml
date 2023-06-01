@@ -191,7 +191,7 @@ jobs:
 
   upgrade-and-build-services:
     needs: detect-service-changes
-    if: ${{ needs.detect-service-changes.outputs.changed-services != '' }}
+    if: ${{ always() && needs.detect-service-changes.outputs.changed-services != '' }}
     runs-on: ubuntu-latest
     permissions:
       contents: write
