@@ -20,11 +20,8 @@ jobs:
       id: changes
       shell: bash
       run: |
-        echo "START"
-        git diff --name-only ${{ github.event.before }}..${{ github.sha }} | grep '^packages/' || true
-        echo "END"
         echo "::group::Detecting changed packages"
-        CHANGED_PACKAGES=$(git diff --name-only ${{ github.event.before }}..${{ github.sha }} | grep '^packages/' | cut -d/ -f2 | sort -u)
+        CHANGED_PACKAGES=$(git diff --name-only ${{ github.event.before }}..${{ github.sha }} | grep '^packages/' | cut -d/ -f2 | sort -u || [])
         echo "Changed packages: $CHANGED_PACKAGES"
         echo "::endgroup::"
 
