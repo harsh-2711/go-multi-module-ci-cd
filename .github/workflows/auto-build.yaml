@@ -1,4 +1,4 @@
-name: Auto Build Packages
+name: Auto Build
 
 on:
   push:
@@ -27,7 +27,7 @@ jobs:
         echo "::set-output name=previous::$PREVIOUS_COMMIT_HASH"
         echo "::set-output name=current::$CURRENT_COMMIT_HASH"
 
-  build-packages:
+  detect-package-changes:
     needs: setup-commit-hashes
     runs-on: ubuntu-latest
     outputs:
@@ -53,28 +53,34 @@ jobs:
 
         echo "::set-output name=changed-packages::$CHANGED_PACKAGES"
 
+  build-packages:
+    needs: detect-package-changes
+    if: ${{ needs.detect-package-changes.outputs.changed-packages != '' }}
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
     - name: Setup Go
-      if: ${{ steps.changes.outputs.changed-packages != '' }}
       uses: actions/setup-go@v4
       with:
         go-version: '^1.20.0'
 
     - name: Setup Workspace
-      if: ${{ steps.changes.outputs.changed-packages != '' }}
       shell: bash
       run: |-
         echo "$(go version)"
         make setup-workspace
 
     - name: Check builds
-      if: ${{ steps.changes.outputs.changed-packages != '' }}
       shell: bash
       run: |-
         make build-all-packages
 
   create-packages-matrix:
-    needs: build-packages
-    if: ${{ needs.build-packages.outputs.changed-packages != '' }}
+    needs: detect-package-changes
+    if: ${{ needs.detect-package-changes.outputs.changed-packages != '' }}
     runs-on: ubuntu-latest
     outputs:
       matrix: ${{ steps.create_matrix.outputs.matrix }}
@@ -92,8 +98,8 @@ jobs:
         echo "::set-output name=matrix::{\"package\": $packages}"
 
   tag-packages:
-    needs: [create-packages-matrix, build-packages]
-    if: ${{ needs.build-packages.outputs.changed-packages != '' }}
+    needs: [create-packages-matrix, detect-package-changes]
+    if: ${{ needs.detect-package-changes.outputs.changed-packages != '' }}
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -120,9 +126,9 @@ jobs:
         name: Release ${{ steps.tag_version.outputs.new_tag }}
         body: ${{ steps.tag_version.outputs.changelog }}
 
-  sync-and-commit:
-    needs: [tag-packages, build-packages]
-    if: ${{ needs.build-packages.outputs.changed-packages != '' }}
+  sync-and-commit-packages:
+    needs: [tag-packages, detect-package-changes]
+    if: ${{ needs.detect-package-changes.outputs.changed-packages != '' }}
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -136,7 +142,7 @@ jobs:
     - name: Update package dependencies
       id: update_package_dependencies
       shell: bash
-      run: |
+      run: |-
         for folder in packages/*; do
           PACKAGE=${folder%/}
           LATEST_TAG=$(git describe --abbrev=0 --tags --match="$PACKAGE/*" 2>&1 | awk -F'/' '{print $NF}')
@@ -144,14 +150,95 @@ jobs:
         done
 
     - name: Commit modified dependencies
-      run: |
+      run: |-
         git config --local user.email "action@github.com"
         git config --local user.name "GitHub Action"
         git add -A
         git commit -m "chore: release new packages version" -a || exit 0
 
     - name: Push changes
-      run: |
+      run: |-
+        git push
+      env:
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  detect-service-changes:
+    needs: [sync-and-commit-packages, setup-commit-hashes]
+    runs-on: ubuntu-latest
+    outputs:
+      changed-services: ${{ steps.changes.outputs.changed-services }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Detect changes
+        id: changes
+        shell: bash
+        run: |-
+          PREVIOUS_COMMIT_HASH=${{ needs.setup-commit-hashes.outputs.previous }}
+          CURRENT_COMMIT_HASH=${{ needs.setup-commit-hashes.outputs.current }}
+
+          echo "::group::Detecting changed services"
+          CHANGED_SERVICES=$(git diff --name-only $PREVIOUS_COMMIT_HASH..$CURRENT_COMMIT_HASH | grep '^services/' | cut -d/ -f2 | sort -u || echo -n '')
+          echo "Changed services: $CHANGED_SERVICES"
+          echo "::endgroup::"
+
+          echo "::set-output name=changed-services::$CHANGED_SERVICES"
+
+  upgrade-and-build-services:
+    needs: detect-service-changes
+    if: ${{ needs.detect-service-changes.outputs.changed-services != '' }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Setup Go
+      uses: actions/setup-go@v4
+      with:
+        go-version: '^1.20.0'
+
+    - name: Setup Workspace
+      shell: bash
+      run: |-
+        echo "$(go version)"
+        make setup-workspace
+
+    - name: Check builds
+      shell: bash
+      run: |-
+        CHANGED_SERVICES="${{ needs.detect-service-changes.outputs.changed-services }}"
+        for service in $CHANGED_SERVICES; do
+          cd services/$service
+          go build -v -o /dev/null || exit 1
+          cd - > /dev/null
+        done
+
+    - name: Update package dependencies
+      shell: bash
+      run: |-
+        CHANGED_SERVICES="${{ needs.detect-service-changes.outputs.changed-services }}"
+        for service in $CHANGED_SERVICES; do
+          cd services/$service
+          go get -u && go get -u all && go mod tidy
+          cd - > /dev/null; \
+        done
+
+    - name: Commit modified dependencies
+      run: |-
+        git config --local user.email "action@github.com"
+        git config --local user.name "GitHub Action"
+        git add -A
+        git commit -m "chore: upgrade packages" -a || exit 0
+
+    - name: Push changes
+      run: |-
         git push
       env:
         GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
