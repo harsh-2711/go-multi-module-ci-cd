@@ -6,9 +6,20 @@ on:
       - launchpad
 
 jobs:
+  setup-commit-hashes:
+    if: github.event.sender.login != 'GitHub Action'
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Export commit hashes
+      shell: bash
+      run: |
+        echo "PREVIOUS_COMMIT_HASH=${{ github.event.before }}" >> $GITHUB_ENV
+        echo "CURRENT_COMMIT_HASH=${{ github.sha }}" >> $GITHUB_ENV
+
   build-packages:
     runs-on: ubuntu-latest
-    if: github.event.sender.login != 'GitHub Action'
+    needs: setup-commit-hashes
     outputs:
       changed-packages: ${{ steps.changes.outputs.changed-packages }}
 
@@ -23,7 +34,7 @@ jobs:
       shell: bash
       run: |-
         echo "::group::Detecting changed packages"
-        CHANGED_PACKAGES=$(git diff --name-only ${{ github.event.before }}..${{ github.sha }} | grep '^packages/' | cut -d/ -f2 | sort -u || echo -n '')
+        CHANGED_PACKAGES=$(git diff --name-only $PREVIOUS_COMMIT_HASH..$CURRENT_COMMIT_HASH | grep '^packages/' | cut -d/ -f2 | sort -u || echo -n '')
         echo "Changed packages: $CHANGED_PACKAGES"
         echo "::endgroup::"
 
