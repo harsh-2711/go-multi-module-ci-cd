@@ -214,7 +214,7 @@ jobs:
     - name: Check builds
       shell: bash
       run: |-
-        CHANGED_SERVICES=${{ needs.detect-service-changes.outputs.changed-services }}
+        CHANGED_SERVICES="${{ needs.detect-service-changes.outputs.changed-services }}"
         for service in $CHANGED_SERVICES; do
           cd services/$service
           go build -v -o /dev/null || exit 1
@@ -224,7 +224,7 @@ jobs:
     - name: Update package dependencies
       shell: bash
       run: |-
-        CHANGED_SERVICES=${{ needs.detect-service-changes.outputs.changed-services }}
+        CHANGED_SERVICES="${{ needs.detect-service-changes.outputs.changed-services }}"
         for service in $CHANGED_SERVICES; do
           cd services/$service
           go get -u && go get -u all && go mod tidy
