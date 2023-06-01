@@ -164,6 +164,7 @@ jobs:
 
   detect-service-changes:
     needs: [sync-and-commit-packages, setup-commit-hashes]
+    if: ${{ always() }}
     runs-on: ubuntu-latest
     outputs:
       changed-services: ${{ steps.changes.outputs.changed-services }}

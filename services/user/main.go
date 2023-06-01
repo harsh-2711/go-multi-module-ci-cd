@@ -9,7 +9,7 @@ import (
 )
 
 func main() {
-	fmt.Println("input userId: ")
+	fmt.Println("input userId:")
 	var userId int
 	_, err := fmt.Scanln(&userId)
 	if err != nil {
@@ -23,5 +23,5 @@ func main() {
 	}
 
 	userEntityId := entity.GetUserEntity(userId)
-	fmt.Println("userEntityId: ", userEntityId)
+	fmt.Println("userEntityId:", userEntityId)
 }
