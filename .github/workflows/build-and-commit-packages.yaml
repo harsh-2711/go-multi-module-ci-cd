@@ -6,7 +6,7 @@ on:
       - launchpad
 
 jobs:
-  build:
+  build-packages:
     runs-on: ubuntu-latest
     if: github.event.sender.login != 'GitHub Action'
     outputs:
@@ -29,14 +29,6 @@ jobs:
 
         echo "::set-output name=changed-packages::$CHANGED_PACKAGES"
 
-    # - name: Exit if no changes
-    #   shell: bash
-    #   run: |
-    #     if [[ -z "$CHANGED_PACKAGES" ]]; then
-    #       echo "No changes detected in packages, exiting"
-    #       exit 1
-    #     fi
-
     - name: Setup Go
       if: ${{ steps.changes.outputs.changed-packages != '' }}
       uses: actions/setup-go@v4
@@ -56,21 +48,37 @@ jobs:
       run: |-
         make build-all-packages
 
-  tag:
-    needs: build
-    if: ${{ needs.build.outputs.changed-packages != '' }}
+  create-packages-matrix:
+    needs: build-packages
+    if: ${{ needs.build-packages.outputs.changed-packages != '' }}
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.create_matrix.outputs.matrix }}
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Create matrix
+      id: create_matrix
+      shell: bash
+      run: |-
+        packages=$(find packages -name go.mod -exec dirname {} \; | jq -R -s -c 'split("\n")[:-1]')
+        echo "packages: $packages"
+        echo "::set-output name=matrix::{\"package\": $packages}"
+
+  tag-packages:
+    needs: [create-packages-matrix, build-packages]
+    if: ${{ needs.build-packages.outputs.changed-packages != '' }}
     runs-on: ubuntu-latest
     permissions:
       contents: write
     strategy:
-      matrix:
-        package: [even, odd]
-    defaults:
-      run:
-        working-directory: packages/${{ matrix.package }}
+      matrix: ${{ fromJson(needs.create-packages-matrix.outputs.matrix) }}
 
     steps:
-    - uses: actions/checkout@v3
+    - name: Checkout code
+      uses: actions/checkout@v3
 
     - name: Bump version and push tag
       id: tag_version
@@ -79,7 +87,7 @@ jobs:
         github_token: ${{ secrets.GITHUB_TOKEN }}
         release_branches: main,launchpad # Update this
         default_bump: patch
-        tag_prefix: packages/${{ matrix.package }}/v
+        tag_prefix: ${{ matrix.package }}/v
 
     - name: Create a GitHub release
       uses: ncipollo/release-action@v1
@@ -89,14 +97,15 @@ jobs:
         body: ${{ steps.tag_version.outputs.changelog }}
 
   sync-and-commit:
-    needs: [tag, build]
-    if: ${{ needs.build.outputs.changed-packages != '' }}
+    needs: [tag-packages, build-packages]
+    if: ${{ needs.build-packages.outputs.changed-packages != '' }}
     runs-on: ubuntu-latest
     permissions:
       contents: write
 
     steps:
-    - uses: actions/checkout@v3
+    - name: Checkout code
+      uses: actions/checkout@v3
       with:
         fetch-depth: 0
 
