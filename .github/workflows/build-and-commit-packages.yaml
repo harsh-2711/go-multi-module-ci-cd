@@ -9,6 +9,8 @@ jobs:
   build:
     runs-on: ubuntu-latest
     if: github.event.sender.login != 'GitHub Action'
+    outputs:
+      changed-packages: ${{ steps.changes.outputs.changed-packages }}
 
     steps:
     - name: Checkout code
@@ -19,37 +21,44 @@ jobs:
     - name: Detect changes
       id: changes
       shell: bash
-      run: |
+      run: |-
         echo "::group::Detecting changed packages"
         CHANGED_PACKAGES=$(git diff --name-only ${{ github.event.before }}..${{ github.sha }} | grep '^packages/' | cut -d/ -f2 | sort -u || echo -n '')
         echo "Changed packages: $CHANGED_PACKAGES"
         echo "::endgroup::"
 
-    - name: Exit if no changes
-      shell: bash
-      run: |
-        if [[ -z "$CHANGED_PACKAGES" ]]; then
-          echo "No changes detected in packages, exiting"
-          exit 1
-        fi
+        echo "::set-output name=changed-packages::$CHANGED_PACKAGES"
 
-    - uses: actions/setup-go@v4
+    # - name: Exit if no changes
+    #   shell: bash
+    #   run: |
+    #     if [[ -z "$CHANGED_PACKAGES" ]]; then
+    #       echo "No changes detected in packages, exiting"
+    #       exit 1
+    #     fi
+
+    - name: Setup Go
+      if: ${{ steps.changes.outputs.changed-packages != '' }}
+      uses: actions/setup-go@v4
       with:
         go-version: '^1.20.0'
 
     - name: Setup Workspace
+      if: ${{ steps.changes.outputs.changed-packages != '' }}
       shell: bash
-      run: |
+      run: |-
         echo "$(go version)"
         make setup-workspace
 
     - name: Check builds
+      if: ${{ steps.changes.outputs.changed-packages != '' }}
       shell: bash
-      run: |
+      run: |-
         make build-all-packages
 
   tag:
     needs: build
+    if: ${{ needs.build.outputs.changed-packages != '' }}
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -80,7 +89,8 @@ jobs:
         body: ${{ steps.tag_version.outputs.changelog }}
 
   sync-and-commit:
-    needs: tag
+    needs: [tag, build]
+    if: ${{ needs.build.outputs.changed-packages != '' }}
     runs-on: ubuntu-latest
     permissions:
       contents: write

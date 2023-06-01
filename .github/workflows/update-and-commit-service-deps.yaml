@@ -23,7 +23,7 @@ jobs:
         shell: bash
         run: |
           echo "::group::Detecting changed services"
-          CHANGED_SERVICES=$(git diff --name-only ${{ github.event.before }}..${{ github.sha }} | grep '^services/' | cut -d/ -f2 | sort -u)
+          CHANGED_SERVICES=$(git diff --name-only ${{ github.event.before }}..${{ github.sha }} | grep '^services/' | cut -d/ -f2 | sort -u || echo -n '')
           echo "Changed services: $CHANGED_SERVICES"
           echo "::endgroup::"
 
